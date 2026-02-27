@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Color Picker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- Custom title bar (frameless window) -->
+  <div class="titlebar" id="titlebar">
+    <span class="titlebar-title">🎨 Color Picker</span>
+    <div class="titlebar-controls">
+      <button class="titlebar-btn settings" id="settings-btn" title="Settings">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+          </path>
+        </svg>
+      </button>
+      <button class="titlebar-btn accessibility" id="accessibility-btn" title="Color Blindness Simulator">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+      <button class="titlebar-btn harmonics" id="harmonics-btn" title="Harmonic Palettes">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+        </svg>
+      </button>
+      <button class="titlebar-btn minimize" id="btn-minimize" title="Minimize">─</button>
+      <button class="titlebar-btn close" id="btn-close" title="Close">✕</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- Current color section -->
+    <section class="current-color-section">
+      <div class="color-preview" id="color-preview">
+        <div class="color-preview-inner" id="color-preview-inner"></div>
+      </div>
+
+      <div class="color-name-container">
+        <span id="color-name"></span>
+      </div>
+
+      <div class="color-values">
+        <div class="value-row">
+          <label>HEX</label>
+          <div class="value-field">
+            <span id="hex-value">#—</span>
+            <div style="display: flex; gap: 4px;">
+              <button class="copy-btn" id="coolors-btn" title="Open in Coolors" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </button>
+              <button class="copy-btn" data-target="hex" title="Copy HEX">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="value-row">
+          <label>RGB</label>
+          <div class="value-field">
+            <span id="rgb-value">—</span>
+            <button class="copy-btn" data-target="rgb" title="Copy RGB">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="value-row">
+          <label>HSL</label>
+          <div class="value-field">
+            <span id="hsl-value">—</span>
+            <button class="copy-btn" data-target="hsl" title="Copy HSL">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="scale-stripe" id="scale-stripe" title="Open UI Tone Scale">
+        <!-- Injected by JS -->
+      </div>
+
+
+
+      <button class="pick-btn" id="pick-btn">
+        <svg class="pipette-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 22l1-1h3l9-9" />
+          <path d="M3 21l9-9" />
+          <circle cx="17.5" cy="6.5" r="3.5" />
+        </svg>
+        Pick Color
+      </button>
+    </section>
+
+    <!-- Gallery section -->
+    <section class="gallery-section">
+      <div class="gallery-header">
+        <h2>History</h2>
+        <div class="gallery-actions">
+          <button class="clear-btn" id="clear-btn" title="Clear all colors">Clear All</button>
+        </div>
+      </div>
+      <div class="gallery" id="gallery">
+        <div class="gallery-empty" id="gallery-empty">
+          <p>No colors saved yet.<br />Pick a color to get started!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Harmonics Section (Hidden by default) -->
+    <section class="harmonics-section" id="harmonics-section" style="display: none;">
+      <div class="harmonics-header">
+        <h2>Harmonic Palettes</h2>
+        <button class="back-btn" id="btn-harmonics-back" title="Back to picker">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div class="harmonics-content">
+        <div class="palette-row" id="palette-complementary">
+          <h4>Complementary</h4>
+          <div class="palette-colors"></div>
+        </div>
+        <div class="palette-row" id="palette-analogous">
+          <h4>Analogous</h4>
+          <div class="palette-colors"></div>
+        </div>
+        <div class="palette-row" id="palette-triadic">
+          <h4>Triadic</h4>
+          <div class="palette-colors"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UI Scale Section (Hidden by default) -->
+    <section class="scale-section" id="scale-section" style="display: none;">
+      <div class="harmonics-header">
+        <h2>UI Tint & Tone Scale</h2>
+        <button class="back-btn" id="btn-scale-back" title="Back to picker">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+      </div>
+      <div class="scale-controls">
+        <div class="format-toggle" id="scale-format-toggle">
+          <button class="format-btn active" data-format="hex">HEX</button>
+          <button class="format-btn" data-format="rgb">RGB</button>
+          <button class="format-btn" data-format="hsl">HSL</button>
+        </div>
+      </div>
+      <div class="scale-content" id="scale-content">
+        <!-- 10 steps generated here -->
+      </div>
+    </section>
+
+    <!-- Accessibility Section (Hidden by default) -->
+    <section class="accessibility-section" id="accessibility-section" style="display: none;">
+      <div class="harmonics-header">
+        <h2>Color Blindness Simulator</h2>
+        <button class="back-btn" id="btn-accessibility-back" title="Back to picker">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+      </div>
+      <div class="accessibility-content" id="accessibility-content">
+        <div class="access-hero">
+          <div class="access-color-circle" id="access-color-circle"></div>
+          <div class="access-name-block">
+            <h3 id="access-color-name">Dodger Blue</h3>
+            <p id="access-color-hex">#0078D4</p>
+          </div>
+        </div>
+
+        <div class="access-section-title">Contrast (WCAG)</div>
+        <div class="access-wcag">
+          <div class="wcag-card" id="access-wcag-white">
+            <div class="wcag-card-bg bg-white">Aa</div>
+            <div class="wcag-card-info">
+              <div class="wcag-ratio" id="wcag-ratio-white">1.0:1</div>
+              <div class="wcag-grades" id="wcag-grades-white">Normal: Fail | Large: Fail</div>
+            </div>
+          </div>
+          <div class="wcag-card" id="access-wcag-black">
+            <div class="wcag-card-bg bg-black">Aa</div>
+            <div class="wcag-card-info">
+              <div class="wcag-ratio" id="wcag-ratio-black">1.0:1</div>
+              <div class="wcag-grades" id="wcag-grades-black">Normal: Pass | Large: Pass</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="access-section-title">Vision Simulator</div>
+        <div id="vision-simulator-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">Copied!</div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="modal-close" id="settings-close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-item">
+          <label>Theme</label>
+          <div class="theme-toggle-group" id="theme-toggle">
+            <button class="theme-btn dark" data-theme="dark">Dark</button>
+            <button class="theme-btn light" data-theme="light">Light</button>
+          </div>
+        </div>
+        <div class="setting-item">
+          <label>Global Picker Shortcut</label>
+          <input type="text" id="shortcut-input" placeholder="e.g. CommandOrControl+Shift+C" readonly>
+          <p class="setting-hint">Click to record a new keyboard shortcut. Escape to cancel.</p>
+        </div>
+        <div class="setting-item toggle-item">
+          <label>Launch on System Startup</label>
+          <label class="switch">
+            <input type="checkbox" id="startup-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+
+</html>

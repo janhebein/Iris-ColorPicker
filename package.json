@@ -1,0 +1,15 @@
+{
+  "name": "colorpicker",
+  "version": "1.0.0",
+  "description": "A sleek cross-platform color picker with eyedropper and color gallery",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^28.0.0"
+  },
+  "dependencies": {
+    "electron-color-picker": "^0.2.0"
+  }
+}
