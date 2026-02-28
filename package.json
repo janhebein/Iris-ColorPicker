@@ -1,15 +1,18 @@
 {
-  "name": "colorpicker",
+  "name": "iris",
   "version": "1.0.0",
-  "description": "A sleek cross-platform color picker with eyedropper and color gallery",
-  "main": "main.js",
+  "description": "Iris — A sleek cross-platform color picker with eyedropper and color gallery",
   "scripts": {
-    "start": "electron ."
+    "dev": "tauri dev",
+    "build": "tauri build"
   },
   "devDependencies": {
-    "electron": "^28.0.0"
+    "@tauri-apps/cli": "^2.0.0"
   },
   "dependencies": {
-    "electron-color-picker": "^0.2.0"
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-autostart": "^2.0.0",
+    "@tauri-apps/plugin-global-shortcut": "^2.0.0",
+    "@tauri-apps/plugin-shell": "^2.0.0"
   }
 }

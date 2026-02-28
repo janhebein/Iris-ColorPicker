@@ -67,7 +67,7 @@ const wcagBlackText = document.querySelector('#wcag-black .wcag-text');
 const wcagBlackRatio = document.getElementById('wcag-black-ratio');
 
 // ── State ────────────────────────────────────────────
-let savedColors = JSON.parse(localStorage.getItem('colorpicker-colors') || '[]');
+let savedColors = JSON.parse(localStorage.getItem('iris-colors') || '[]');
 let currentColor = null;
 let currentScaleFormat = 'hex';
 
@@ -87,7 +87,7 @@ if (scaleFormatToggle) {
 }
 
 // ── Theming ──────────────────────────────────────────
-let currentTheme = localStorage.getItem('colorpicker-theme') || 'dark';
+let currentTheme = localStorage.getItem('iris-theme') || 'dark';
 
 function applyTheme(theme) {
     if (theme === 'light') {
@@ -109,7 +109,7 @@ applyTheme(currentTheme);
 themeButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
         currentTheme = e.target.dataset.theme;
-        localStorage.setItem('colorpicker-theme', currentTheme);
+        localStorage.setItem('iris-theme', currentTheme);
         applyTheme(currentTheme);
     });
 });
@@ -131,6 +131,7 @@ settingsModal.addEventListener('click', (e) => {
 
 // ── Title bar controls ───────────────────────────────
 btnClose.addEventListener('click', () => {
+    console.log("X button clicked");
     if (window.electronAPI) window.electronAPI.close();
     else window.close();
 });
@@ -243,7 +244,7 @@ function hslToHex(h, s, l) {
 }
 
 function saveColors() {
-    localStorage.setItem('colorpicker-colors', JSON.stringify(savedColors));
+    localStorage.setItem('iris-colors', JSON.stringify(savedColors));
 }
 
 // ── Toast notification ───────────────────────────────
@@ -441,7 +442,7 @@ document.addEventListener('click', (e) => {
 });
 
 // ── Shortcut Recording ───────────────────────────────
-let currentShortcut = localStorage.getItem('colorpicker-shortcut') || '';
+let currentShortcut = localStorage.getItem('iris-shortcut') || '';
 shortcutInput.value = formatShortcutForDisplay(currentShortcut);
 function formatShortcutForDisplay(shortcut) {
     if (!shortcut) return '';
@@ -452,7 +453,7 @@ if (currentShortcut && window.electronAPI) {
     window.electronAPI.registerShortcut(currentShortcut);
 }
 
-let currentBgShortcut = localStorage.getItem('colorpicker-bg-shortcut') || '';
+let currentBgShortcut = localStorage.getItem('iris-bg-shortcut') || '';
 if (bgShortcutInput) {
     bgShortcutInput.value = formatShortcutForDisplay(currentBgShortcut);
     if (currentBgShortcut && window.electronAPI) {
@@ -505,38 +506,63 @@ function handleShortcutInput(inputEl, storageKey, apiMethod) {
 }
 
 if (shortcutInput) {
-    handleShortcutInput(shortcutInput, 'colorpicker-shortcut', 'registerShortcut');
+    handleShortcutInput(shortcutInput, 'iris-shortcut', 'registerShortcut');
 }
 
 if (bgShortcutInput) {
-    handleShortcutInput(bgShortcutInput, 'colorpicker-bg-shortcut', 'registerBgShortcut');
+    handleShortcutInput(bgShortcutInput, 'iris-bg-shortcut', 'registerBgShortcut');
 }
 
-// Global shortcut activated callback
+// Global shortcut activated callbacks
 if (window.electronAPI) {
-    window.electronAPI.onShortcutPicked((hex) => {
-        if (!hex) return;
-        setCurrentColor(hex);
-        if (!savedColors.includes(hex)) {
-            savedColors.unshift(hex);
-            saveColors();
-            renderGallery();
-            showToast(`Added ${hex}`);
-        } else {
-            showToast(`${hex} already saved`);
-        }
-    });
+    // Shortcut 1: Open window + start picker immediately
+    if (window.electronAPI.onTriggerPicker) {
+        window.electronAPI.onTriggerPicker(async () => {
+            // Window is already shown by Rust. Now trigger the picker.
+            try {
+                const hex = await window.electronAPI.pickColor();
+                if (hex) {
+                    setCurrentColor(hex);
+                    navigator.clipboard.writeText(hex);
+                    if (!savedColors.includes(hex)) {
+                        savedColors.unshift(hex);
+                        saveColors();
+                        renderGallery();
+                        showToast(`Picked & Copied ${hex}`);
+                    } else {
+                        showToast(`Copied ${hex}`);
+                    }
+                }
+            } catch (err) {
+                console.log('Picker shortcut error:', err);
+            }
+        });
+    }
 
-    window.electronAPI.onBgShortcutPicked((hex) => {
-        if (!hex) return;
-        // Background shortcut already copied text in main.js
-        if (!savedColors.includes(hex)) {
-            savedColors.unshift(hex);
-            saveColors();
-            renderGallery();
-        }
-        showToast(`Copied ${hex} (BG)`);
-    });
+    // Shortcut 2: Show picker without window, copy color, then hide window
+    if (window.electronAPI.onTriggerBgPicker) {
+        window.electronAPI.onTriggerBgPicker(async () => {
+            try {
+                const hex = await window.electronAPI.pickColor();
+                if (hex) {
+                    setCurrentColor(hex);
+                    await navigator.clipboard.writeText(hex);
+                    if (!savedColors.includes(hex)) {
+                        savedColors.unshift(hex);
+                        saveColors();
+                        renderGallery();
+                    }
+                    showToast(`Copied ${hex}`);
+                }
+            } catch (err) {
+                console.log('BG picker shortcut error:', err);
+            }
+            // Hide window after picking (shortcut 2 = no window)
+            if (window.electronAPI.close) {
+                window.electronAPI.close();
+            }
+        });
+    }
 }
 
 // ── EyeDropper ───────────────────────────────────────
@@ -684,7 +710,7 @@ if (exportBtn) {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(savedColors, null, 2));
         const a = document.createElement('a');
         a.href = dataStr;
-        a.download = "colorpicker-history.json";
+        a.download = "iris-history.json";
         a.click();
         showToast("Exported history");
     });
