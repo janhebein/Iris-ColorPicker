@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { getColorHexRGB } = require('electron-color-picker');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -64,7 +65,6 @@ ipcMain.on('open-external', (event, url) => {
 
 ipcMain.handle('pick-color', async () => {
   try {
-    const { getColorHexRGB } = require('electron-color-picker');
     const color = await getColorHexRGB();
     return color; // returns e.g. '#FF0000' or '' if canceled
   } catch (err) {
@@ -74,6 +74,40 @@ ipcMain.handle('pick-color', async () => {
 });
 
 let currentShortcut = null;
+let currentBgShortcut = null;
+
+const { clipboard } = require('electron');
+
+ipcMain.on('register-bg-shortcut', (event, keys) => {
+  if (currentBgShortcut) {
+    globalShortcut.unregister(currentBgShortcut);
+  }
+  if (!keys) return;
+
+  try {
+    const success = globalShortcut.register(keys, async () => {
+      try {
+        const color = await getColorHexRGB();
+        if (color) {
+          clipboard.writeText(color);
+          if (mainWindow) {
+            mainWindow.webContents.send('bg-shortcut-color-picked', color);
+          }
+        }
+      } catch (err) {
+        console.error('Background shortcut picker error:', err);
+      }
+    });
+
+    if (success) {
+      currentBgShortcut = keys;
+    } else {
+      console.error('Failed to register bg shortcut', keys);
+    }
+  } catch (e) {
+    console.error('Invalid bg shortcut string', e);
+  }
+});
 
 ipcMain.on('register-shortcut', (event, keys) => {
   if (currentShortcut) {
@@ -85,7 +119,6 @@ ipcMain.on('register-shortcut', (event, keys) => {
   try {
     const success = globalShortcut.register(keys, async () => {
       try {
-        const { getColorHexRGB } = require('electron-color-picker');
         const color = await getColorHexRGB();
         if (color && mainWindow) {
           mainWindow.webContents.send('shortcut-color-picked', color);

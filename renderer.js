@@ -12,6 +12,8 @@ const galleryEmpty = document.getElementById('gallery-empty');
 const clearBtn = document.getElementById('clear-btn');
 const btnMinimize = document.getElementById('btn-minimize');
 const btnClose = document.getElementById('btn-close');
+const pinBtn = document.getElementById('pin-btn');
+const exportBtn = document.getElementById('export-btn');
 
 // Harmonics Elements
 const harmonicsBtn = document.getElementById('harmonics-btn');
@@ -21,6 +23,9 @@ const mainContainer = document.querySelector('.container');
 const palComplementary = document.getElementById('palette-complementary').querySelector('.palette-colors');
 const palAnalogous = document.getElementById('palette-analogous').querySelector('.palette-colors');
 const palTriadic = document.getElementById('palette-triadic').querySelector('.palette-colors');
+const harmonicsPreviewColor = document.getElementById('harmonics-preview-color');
+const harmonicsHex = document.getElementById('harmonics-hex');
+const harmonicsRgb = document.getElementById('harmonics-rgb');
 
 // Settings DOM
 const btnSettings = document.getElementById('settings-btn');
@@ -28,6 +33,7 @@ const settingsModal = document.getElementById('settings-modal');
 const btnSettingsClose = document.getElementById('settings-close');
 const themeButtons = document.querySelectorAll('.theme-btn');
 const shortcutInput = document.getElementById('shortcut-input');
+const bgShortcutInput = document.getElementById('bg-shortcut-input');
 const startupToggle = document.getElementById('startup-toggle');
 
 // Scale Elements
@@ -54,6 +60,11 @@ const accessWcagWhiteRatio = document.getElementById('wcag-ratio-white');
 const accessWcagWhiteGrades = document.getElementById('wcag-grades-white');
 const accessWcagBlackRatio = document.getElementById('wcag-ratio-black');
 const accessWcagBlackGrades = document.getElementById('wcag-grades-black');
+
+const wcagWhiteText = document.querySelector('#wcag-white .wcag-text');
+const wcagWhiteRatio = document.getElementById('wcag-white-ratio');
+const wcagBlackText = document.querySelector('#wcag-black .wcag-text');
+const wcagBlackRatio = document.getElementById('wcag-black-ratio');
 
 // ── State ────────────────────────────────────────────
 let savedColors = JSON.parse(localStorage.getItem('colorpicker-colors') || '[]');
@@ -126,6 +137,57 @@ btnClose.addEventListener('click', () => {
 btnMinimize.addEventListener('click', () => {
     if (window.electronAPI) window.electronAPI.minimize();
 });
+
+let isPinned = true;
+if (pinBtn) {
+    const pinIcon = pinBtn.querySelector('svg');
+    pinIcon.setAttribute('fill', 'currentColor');
+    pinBtn.style.color = 'var(--text)';
+
+    pinBtn.addEventListener('click', () => {
+        isPinned = !isPinned;
+        pinIcon.setAttribute('fill', isPinned ? 'currentColor' : 'none');
+        pinBtn.style.color = isPinned ? 'var(--text)' : 'var(--text-dim)';
+        if (window.electronAPI) window.electronAPI.setAlwaysOnTop(isPinned);
+        showToast(isPinned ? 'Always on Top: ON' : 'Always on Top: OFF');
+    });
+}
+
+// ── Navigation ───────────────────────────────────────
+function showView(viewId) {
+    const sections = ['harmonics-section', 'scale-section', 'accessibility-section'];
+
+    // Hide all sub-sections and main sections
+    Array.from(mainContainer.children).forEach(child => {
+        child.style.display = 'none';
+    });
+
+    if (viewId === 'main') {
+        // Show only main sections
+        Array.from(mainContainer.children).forEach(child => {
+            if (!sections.includes(child.id)) {
+                child.style.display = '';
+            }
+        });
+    } else {
+        // Show specific sub-section
+        const target = document.getElementById(viewId);
+        if (target) {
+            target.style.display = 'flex';
+            if (viewId === 'harmonics-section') generateHarmonics();
+            if (viewId === 'scale-section') generateScale();
+            if (viewId === 'accessibility-section') generateAccessibility();
+        }
+    }
+}
+
+harmonicsBtn.addEventListener('click', () => showView('harmonics-section'));
+accessibilityBtn.addEventListener('click', () => showView('accessibility-section'));
+scaleStripe.addEventListener('click', () => showView('scale-section'));
+
+btnHarmonicsBack.addEventListener('click', () => showView('main'));
+btnScaleBack.addEventListener('click', () => showView('main'));
+btnAccessibilityBack.addEventListener('click', () => showView('main'));
 
 // ── Startup Toggle ───────────────────────────────────
 if (window.electronAPI && window.electronAPI.getStartupStatus) {
@@ -330,6 +392,23 @@ function setCurrentColor(hex, skipVariationsUpdate = false) {
     rgbValue.innerHTML = `rgb(<span class="clickable-value" data-tooltip="Copy R">${r}</span>, <span class="clickable-value" data-tooltip="Copy G">${g}</span>, <span class="clickable-value" data-tooltip="Copy B">${b}</span>)`;
     hslValue.innerHTML = `hsl(<span class="clickable-value" data-tooltip="Copy H">${h}</span>, <span class="clickable-value" data-tooltip="Copy S">${s}%</span>, <span class="clickable-value" data-tooltip="Copy L">${l}%</span>)`;
 
+    // Update WCAG
+    if (wcagWhiteText) wcagWhiteText.style.color = currentColor;
+    if (wcagBlackText) wcagBlackText.style.color = currentColor;
+
+    const cw = getContrastRatio(r, g, b, 255, 255, 255).toFixed(2);
+    const cb = getContrastRatio(r, g, b, 0, 0, 0).toFixed(2);
+
+    if (wcagWhiteRatio) {
+        wcagWhiteRatio.textContent = `${cw}:1`;
+        wcagWhiteRatio.className = `wcag-ratio ${cw >= 4.5 ? 'pass' : 'fail'}`;
+    }
+
+    if (wcagBlackRatio) {
+        wcagBlackRatio.textContent = `${cb}:1`;
+        wcagBlackRatio.className = `wcag-ratio ${cb >= 4.5 ? 'pass' : 'fail'}`;
+    }
+
     // Update Variations (Tints + Shades)
     if (!skipVariationsUpdate) {
         // If Harmonics page is visible, refresh it
@@ -368,50 +447,62 @@ if (currentShortcut && window.electronAPI) {
     window.electronAPI.registerShortcut(currentShortcut);
 }
 
-shortcutInput.addEventListener('keydown', (e) => {
-    e.preventDefault();
-    if (e.key === 'Escape') {
-        shortcutInput.blur();
-        return;
+let currentBgShortcut = localStorage.getItem('colorpicker-bg-shortcut') || '';
+if (bgShortcutInput) {
+    bgShortcutInput.value = currentBgShortcut;
+    if (currentBgShortcut && window.electronAPI) {
+        window.electronAPI.registerBgShortcut(currentBgShortcut);
     }
+}
 
-    // Ignore standalone modifier keys
-    if (['Alt', 'Control', 'Shift', 'Meta'].includes(e.key)) return;
-
-    let keys = [];
-    if (e.ctrlKey || e.metaKey) keys.push('CommandOrControl');
-    if (e.altKey) keys.push('Alt');
-    if (e.shiftKey) keys.push('Shift');
-
-    // Add the main key
-    let key = e.key.toUpperCase();
-    if (key === ' ') key = 'Space';
-    keys.push(key);
-
-    const shortcutStr = keys.join('+');
-
-    shortcutInput.value = shortcutStr;
-    currentShortcut = shortcutStr;
-    localStorage.setItem('colorpicker-shortcut', currentShortcut);
-
-    if (window.electronAPI) {
-        window.electronAPI.registerShortcut(currentShortcut);
-        showToast(`Shortcut set to ${shortcutStr}`);
-    }
-    shortcutInput.blur();
-});
-
-// Remove shortcut on backspace/delete
-shortcutInput.addEventListener('keyup', (e) => {
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-        shortcutInput.value = '';
-        currentShortcut = '';
-        localStorage.setItem('colorpicker-shortcut', '');
-        if (window.electronAPI) {
-            window.electronAPI.registerShortcut('');
+function handleShortcutInput(inputEl, storageKey, apiMethod) {
+    inputEl.addEventListener('keydown', (e) => {
+        e.preventDefault();
+        if (e.key === 'Escape') {
+            inputEl.blur();
+            return;
         }
-    }
-});
+
+        if (['Alt', 'Control', 'Shift', 'Meta'].includes(e.key)) return;
+
+        let keys = [];
+        if (e.ctrlKey || e.metaKey) keys.push('CommandOrControl');
+        if (e.altKey) keys.push('Alt');
+        if (e.shiftKey) keys.push('Shift');
+
+        let key = e.key.toUpperCase();
+        if (key === ' ') key = 'Space';
+        keys.push(key);
+
+        const shortcutStr = keys.join('+');
+        inputEl.value = shortcutStr;
+        localStorage.setItem(storageKey, shortcutStr);
+
+        if (window.electronAPI && window.electronAPI[apiMethod]) {
+            window.electronAPI[apiMethod](shortcutStr);
+            showToast(`Shortcut set to ${shortcutStr}`);
+        }
+        inputEl.blur();
+    });
+
+    inputEl.addEventListener('keyup', (e) => {
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+            inputEl.value = '';
+            localStorage.setItem(storageKey, '');
+            if (window.electronAPI && window.electronAPI[apiMethod]) {
+                window.electronAPI[apiMethod]('');
+            }
+        }
+    });
+}
+
+if (shortcutInput) {
+    handleShortcutInput(shortcutInput, 'colorpicker-shortcut', 'registerShortcut');
+}
+
+if (bgShortcutInput) {
+    handleShortcutInput(bgShortcutInput, 'colorpicker-bg-shortcut', 'registerBgShortcut');
+}
 
 // Global shortcut activated callback
 if (window.electronAPI) {
@@ -427,6 +518,17 @@ if (window.electronAPI) {
             showToast(`${hex} already saved`);
         }
     });
+
+    window.electronAPI.onBgShortcutPicked((hex) => {
+        if (!hex) return;
+        // Background shortcut already copied text in main.js
+        if (!savedColors.includes(hex)) {
+            savedColors.unshift(hex);
+            saveColors();
+            renderGallery();
+        }
+        showToast(`Copied ${hex} (BG)`);
+    });
 }
 
 // ── EyeDropper ───────────────────────────────────────
@@ -438,15 +540,18 @@ pickBtn.addEventListener('click', async () => {
 
         setCurrentColor(hex);
 
-        // Auto-add to gallery if not duplicate
-        if (!savedColors.includes(hex)) {
-            savedColors.unshift(hex);
-            saveColors();
-            renderGallery();
-            showToast(`Added ${hex}`);
-        } else {
-            showToast(`${hex} already saved`);
-        }
+        // Auto-Copy to clipboard
+        navigator.clipboard.writeText(hex).then(() => {
+            // Auto-add to gallery if not duplicate
+            if (!savedColors.includes(hex)) {
+                savedColors.unshift(hex);
+                saveColors();
+                renderGallery();
+                showToast(`Picked & Copied ${hex}`);
+            } else {
+                showToast(`Copied ${hex}`);
+            }
+        });
     } catch (err) {
         // user may cancel EyeDropper, which throws an abort error. Ignore.
         console.log('Picker cancelled or error:', err);
@@ -561,29 +666,29 @@ clearBtn.addEventListener('click', () => {
     showToast('All colors cleared');
 });
 
-// Export removed
+// ── Export ───────────────────────────────────────────
+if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+        if (savedColors.length === 0) {
+            showToast("Nothing to export");
+            return;
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(savedColors, null, 2));
+        const a = document.createElement('a');
+        a.href = dataStr;
+        a.download = "colorpicker-history.json";
+        a.click();
+        showToast("Exported history");
+    });
+}
 
 // ── Harmonic Palette Logic ─────────────────────────────
-harmonicsBtn.addEventListener('click', () => {
-    // Hide main container children
-    Array.from(mainContainer.children).forEach(child => {
-        if (child.id !== 'harmonics-section') {
-            child.style.display = 'none';
-        }
-    });
-    harmonicsSection.style.display = 'flex';
-    generateHarmonics();
-});
-
-btnHarmonicsBack.addEventListener('click', () => {
-    // Restore main container children
-    Array.from(mainContainer.children).forEach(child => {
-        if (child.id !== 'harmonics-section') {
-            child.style.display = ''; // Restore default
-        }
-    });
-    harmonicsSection.style.display = 'none';
-});
+function updateHarmonicsPreview(hex) {
+    const { r, g, b } = hexToRgb(hex);
+    if (harmonicsPreviewColor) harmonicsPreviewColor.style.background = hex;
+    if (harmonicsHex) harmonicsHex.textContent = hex;
+    if (harmonicsRgb) harmonicsRgb.textContent = `rgb( ${r} , ${g} , ${b} )`;
+}
 
 function createHarmonicSwatch(hex) {
     const swatch = document.createElement('div');
@@ -591,9 +696,8 @@ function createHarmonicSwatch(hex) {
     swatch.style.background = hex;
     swatch.title = hex;
     swatch.addEventListener('click', () => {
-        navigator.clipboard.writeText(hex).then(() => {
-            showToast(`Copied ${hex}`);
-        });
+        updateHarmonicsPreview(hex);
+        // Do not update global color!
     });
     return swatch;
 }
@@ -604,6 +708,8 @@ function generateHarmonics() {
     palTriadic.innerHTML = '';
 
     if (!currentColor) return;
+
+    updateHarmonicsPreview(currentColor);
 
     const { h, s, l } = hexToHsl(currentColor);
 
@@ -625,27 +731,6 @@ function generateHarmonics() {
 }
 
 // ── UI Scale Logic ────────────────────────────────────
-scaleStripe.addEventListener('click', () => {
-    // Hide main container children
-    Array.from(mainContainer.children).forEach(child => {
-        if (child.id !== 'scale-section') {
-            child.style.display = 'none';
-        }
-    });
-    scaleSection.style.display = 'flex';
-    generateScale();
-});
-
-btnScaleBack.addEventListener('click', () => {
-    // Restore main container children
-    Array.from(mainContainer.children).forEach(child => {
-        if (child.id !== 'scale-section') {
-            child.style.display = ''; // Restore default
-        }
-    });
-    scaleSection.style.display = 'none';
-});
-
 function generateScale() {
     scaleContent.innerHTML = '';
     if (!currentColor) return;
@@ -845,24 +930,7 @@ function generateAccessibility() {
     simulatorGrid.appendChild(createSimRow('Tritanopia\n(Blue-Blind)', currentColor, tri));
 }
 
-accessibilityBtn.addEventListener('click', () => {
-    Array.from(mainContainer.children).forEach(child => {
-        if (child.id !== 'accessibility-section') {
-            child.style.display = 'none';
-        }
-    });
-    accessibilitySection.style.display = 'flex';
-    generateAccessibility();
-});
-
-btnAccessibilityBack.addEventListener('click', () => {
-    Array.from(mainContainer.children).forEach(child => {
-        if (child.id !== 'accessibility-section') {
-            child.style.display = ''; // Restore default
-        }
-    });
-    accessibilitySection.style.display = 'none';
-});
+// accessibilityBtn listeners moved to Navigation section
 
 // ── Init ─────────────────────────────────────────────
 renderGallery();

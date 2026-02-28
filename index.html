@@ -35,6 +35,11 @@
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
         </svg>
       </button>
+      <button class="titlebar-btn pin active" id="pin-btn" title="Toggle Always on Top">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 17v5M9 10.5V5a3 3 0 0 1 6 0v5.5l2 4.5H7l2-4.5z"></path>
+        </svg>
+      </button>
       <button class="titlebar-btn minimize" id="btn-minimize" title="Minimize">─</button>
       <button class="titlebar-btn close" id="btn-close" title="Close">✕</button>
     </div>
@@ -103,6 +108,18 @@
         <!-- Injected by JS -->
       </div>
 
+      <!-- WCAG Contrast Preview -->
+      <div class="wcag-preview">
+        <div class="wcag-box bg-white" id="wcag-white">
+          <span class="wcag-text">Aa</span>
+          <span class="wcag-ratio" id="wcag-white-ratio">1.0:1</span>
+        </div>
+        <div class="wcag-box bg-black" id="wcag-black">
+          <span class="wcag-text">Aa</span>
+          <span class="wcag-ratio" id="wcag-black-ratio">1.0:1</span>
+        </div>
+      </div>
+
 
 
       <button class="pick-btn" id="pick-btn">
@@ -121,6 +138,7 @@
       <div class="gallery-header">
         <h2>History</h2>
         <div class="gallery-actions">
+          <button class="export-btn" id="export-btn" title="Export as JSON">Export</button>
           <button class="clear-btn" id="clear-btn" title="Clear all colors">Clear All</button>
         </div>
       </div>
@@ -141,6 +159,36 @@
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
         </button>
+      </div>
+
+      <div class="harmonics-preview">
+        <div class="harmonics-preview-color" id="harmonics-preview-color"></div>
+        <div class="harmonics-preview-values">
+          <div class="value-row">
+            <label>HEX</label>
+            <div class="value-field">
+              <span id="harmonics-hex">#—</span>
+              <button class="copy-btn" data-target="harmonics-hex" title="Copy HEX">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="value-row">
+            <label>RGB</label>
+            <div class="value-field">
+              <span id="harmonics-rgb">rgb( - , - , - )</span>
+              <button class="copy-btn" data-target="harmonics-rgb" title="Copy RGB">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="harmonics-content">
@@ -253,7 +301,12 @@
         <div class="setting-item">
           <label>Global Picker Shortcut</label>
           <input type="text" id="shortcut-input" placeholder="e.g. CommandOrControl+Shift+C" readonly>
-          <p class="setting-hint">Click to record a new keyboard shortcut. Escape to cancel.</p>
+          <p class="setting-hint">Open the app and pick a color.</p>
+        </div>
+        <div class="setting-item">
+          <label>Background Copy Shortcut</label>
+          <input type="text" id="bg-shortcut-input" placeholder="e.g. CommandOrControl+Shift+V" readonly>
+          <p class="setting-hint">Pick and copy HEX without opening the UI.</p>
         </div>
         <div class="setting-item toggle-item">
           <label>Launch on System Startup</label>
