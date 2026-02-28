@@ -442,20 +442,28 @@ document.addEventListener('click', (e) => {
 
 // ── Shortcut Recording ───────────────────────────────
 let currentShortcut = localStorage.getItem('colorpicker-shortcut') || '';
-shortcutInput.value = currentShortcut;
+shortcutInput.value = formatShortcutForDisplay(currentShortcut);
+function formatShortcutForDisplay(shortcut) {
+    if (!shortcut) return '';
+    return shortcut.replace('CommandOrControl', 'Ctrl');
+}
+
 if (currentShortcut && window.electronAPI) {
     window.electronAPI.registerShortcut(currentShortcut);
 }
 
 let currentBgShortcut = localStorage.getItem('colorpicker-bg-shortcut') || '';
 if (bgShortcutInput) {
-    bgShortcutInput.value = currentBgShortcut;
+    bgShortcutInput.value = formatShortcutForDisplay(currentBgShortcut);
     if (currentBgShortcut && window.electronAPI) {
         window.electronAPI.registerBgShortcut(currentBgShortcut);
     }
 }
 
 function handleShortcutInput(inputEl, storageKey, apiMethod) {
+    const savedValue = localStorage.getItem(storageKey) || '';
+    inputEl.value = formatShortcutForDisplay(savedValue);
+
     inputEl.addEventListener('keydown', (e) => {
         e.preventDefault();
         if (e.key === 'Escape') {
@@ -475,12 +483,12 @@ function handleShortcutInput(inputEl, storageKey, apiMethod) {
         keys.push(key);
 
         const shortcutStr = keys.join('+');
-        inputEl.value = shortcutStr;
+        inputEl.value = formatShortcutForDisplay(shortcutStr);
         localStorage.setItem(storageKey, shortcutStr);
 
         if (window.electronAPI && window.electronAPI[apiMethod]) {
             window.electronAPI[apiMethod](shortcutStr);
-            showToast(`Shortcut set to ${shortcutStr}`);
+            showToast(`Shortcut set to ${formatShortcutForDisplay(shortcutStr)}`);
         }
         inputEl.blur();
     });
