@@ -217,8 +217,7 @@ function hexToRgb(hex) {
     return { r, g, b };
 }
 
-function hexToHsl(hex) {
-    let { r, g, b } = hexToRgb(hex);
+function rgbToHsl(r, g, b) {
     r /= 255; g /= 255; b /= 255;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
@@ -236,6 +235,11 @@ function hexToHsl(hex) {
         h /= 6;
     }
     return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+function hexToHsl(hex) {
+    const { r, g, b } = hexToRgb(hex);
+    return rgbToHsl(r, g, b);
 }
 
 function hslToHex(h, s, l) {
@@ -269,59 +273,78 @@ function showToast(msg) {
     toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 1800);
 }
 
-// ── Color Blindness Assistant (Color Naming) ───────────────
-const colorMapping = [
-    { name: "Red", rgb: [255, 0, 0], cat: "Red" }, { name: "Crimson", rgb: [220, 20, 60], cat: "Red" },
-    { name: "FireBrick", rgb: [178, 34, 34], cat: "Red" }, { name: "DarkRed", rgb: [139, 0, 0], cat: "Red" },
-    { name: "Pink", rgb: [255, 192, 203], cat: "Pink" }, { name: "HotPink", rgb: [255, 105, 180], cat: "Pink" },
-    { name: "DeepPink", rgb: [255, 20, 147], cat: "Pink" }, { name: "Coral", rgb: [255, 127, 80], cat: "Orange" },
-    { name: "Tomato", rgb: [255, 99, 71], cat: "Red" }, { name: "OrangeRed", rgb: [255, 69, 0], cat: "Orange" },
-    { name: "DarkOrange", rgb: [255, 140, 0], cat: "Orange" }, { name: "Orange", rgb: [255, 165, 0], cat: "Orange" },
-    { name: "Gold", rgb: [255, 215, 0], cat: "Yellow" }, { name: "Yellow", rgb: [255, 255, 0], cat: "Yellow" },
-    { name: "Khaki", rgb: [240, 230, 140], cat: "Yellow" }, { name: "Plum", rgb: [221, 160, 221], cat: "Purple" },
-    { name: "Magenta", rgb: [255, 0, 255], cat: "Purple" }, { name: "Purple", rgb: [128, 0, 128], cat: "Purple" },
-    { name: "Indigo", rgb: [75, 0, 130], cat: "Purple" }, { name: "SlateBlue", rgb: [106, 90, 205], cat: "Purple" },
-    { name: "GreenYellow", rgb: [173, 255, 47], cat: "Green" }, { name: "Lime", rgb: [0, 255, 0], cat: "Green" },
-    { name: "LimeGreen", rgb: [50, 205, 50], cat: "Green" }, { name: "PaleGreen", rgb: [152, 251, 152], cat: "Green" },
-    { name: "SpringGreen", rgb: [0, 255, 127], cat: "Green" }, { name: "SeaGreen", rgb: [46, 139, 87], cat: "Green" },
-    { name: "ForestGreen", rgb: [34, 139, 34], cat: "Green" }, { name: "Green", rgb: [0, 128, 0], cat: "Green" },
-    { name: "DarkGreen", rgb: [0, 100, 0], cat: "Green" }, { name: "OliveDrab", rgb: [107, 142, 35], cat: "Green" },
-    { name: "Olive", rgb: [128, 128, 0], cat: "Green" }, { name: "Teal", rgb: [0, 128, 128], cat: "Cyan" },
-    { name: "Cyan", rgb: [0, 255, 255], cat: "Cyan" }, { name: "Turquoise", rgb: [64, 224, 208], cat: "Cyan" },
-    { name: "SteelBlue", rgb: [70, 130, 180], cat: "Blue" }, { name: "SkyBlue", rgb: [135, 206, 235], cat: "Blue" },
-    { name: "DeepSkyBlue", rgb: [0, 191, 255], cat: "Blue" }, { name: "DodgerBlue", rgb: [30, 144, 255], cat: "Blue" },
-    { name: "RoyalBlue", rgb: [65, 105, 225], cat: "Blue" }, { name: "Blue", rgb: [0, 0, 255], cat: "Blue" },
-    { name: "Navy", rgb: [0, 0, 128], cat: "Blue" }, { name: "MidnightBlue", rgb: [25, 25, 112], cat: "Blue" },
-    { name: "Cornsilk", rgb: [255, 248, 220], cat: "Yellow" }, { name: "Bisque", rgb: [255, 228, 196], cat: "Brown" },
-    { name: "NavajoWhite", rgb: [255, 222, 173], cat: "Brown" }, { name: "Wheat", rgb: [245, 222, 179], cat: "Brown" },
-    { name: "BurlyWood", rgb: [222, 184, 135], cat: "Brown" }, { name: "Tan", rgb: [210, 180, 140], cat: "Brown" },
-    { name: "RosyBrown", rgb: [188, 143, 143], cat: "Brown" }, { name: "SandyBrown", rgb: [244, 164, 96], cat: "Brown" },
-    { name: "Goldenrod", rgb: [218, 165, 32], cat: "Yellow" }, { name: "Peru", rgb: [205, 133, 63], cat: "Brown" },
-    { name: "Chocolate", rgb: [210, 105, 30], cat: "Brown" }, { name: "SaddleBrown", rgb: [139, 69, 19], cat: "Brown" },
-    { name: "Sienna", rgb: [160, 82, 45], cat: "Brown" }, { name: "Brown", rgb: [165, 42, 42], cat: "Brown" },
-    { name: "Maroon", rgb: [128, 0, 0], cat: "Red" }, { name: "White", rgb: [255, 255, 255], cat: "White" },
-    { name: "Snow", rgb: [255, 250, 250], cat: "White" }, { name: "Honeydew", rgb: [240, 255, 240], cat: "White" },
-    { name: "MintCream", rgb: [245, 255, 250], cat: "White" }, { name: "Azure", rgb: [240, 255, 255], cat: "White" },
-    { name: "AliceBlue", rgb: [240, 248, 255], cat: "Blue" }, { name: "GhostWhite", rgb: [248, 248, 255], cat: "White" },
-    { name: "WhiteSmoke", rgb: [245, 245, 245], cat: "White" }, { name: "Seashell", rgb: [255, 245, 238], cat: "White" },
-    { name: "Beige", rgb: [245, 245, 220], cat: "Brown" }, { name: "OldLace", rgb: [253, 245, 230], cat: "White" },
-    { name: "FloralWhite", rgb: [255, 250, 240], cat: "White" }, { name: "Ivory", rgb: [255, 255, 240], cat: "White" },
-    { name: "AntiqueWhite", rgb: [250, 235, 215], cat: "White" }, { name: "Linen", rgb: [250, 240, 230], cat: "Brown" },
-    { name: "LavenderBlush", rgb: [255, 240, 245], cat: "Pink" }, { name: "MistyRose", rgb: [255, 228, 225], cat: "Pink" },
-    { name: "Gainsboro", rgb: [220, 220, 220], cat: "Gray" }, { name: "LightGray", rgb: [211, 211, 211], cat: "Gray" },
-    { name: "Silver", rgb: [192, 192, 192], cat: "Gray" }, { name: "DarkGray", rgb: [169, 169, 169], cat: "Gray" },
-    { name: "Gray", rgb: [128, 128, 128], cat: "Gray" }, { name: "DimGray", rgb: [105, 105, 105], cat: "Gray" },
-    { name: "LightSlateGray", rgb: [119, 136, 153], cat: "Gray" }, { name: "SlateGray", rgb: [112, 128, 144], cat: "Gray" },
-    { name: "DarkSlateGray", rgb: [47, 79, 79], cat: "Gray" }, { name: "Black", rgb: [0, 0, 0], cat: "Black" }
-];
+// ── Color Naming (xkcd 948 colors + HSL descriptive) ───────────────
+
+function getDescriptiveColorName(h, s, l) {
+    // ── Lightness descriptor ──
+    let lightnessDesc = "";
+    if (l <= 3) lightnessDesc = "Black";
+    else if (l < 10) lightnessDesc = "Near Black ";
+    else if (l < 20) lightnessDesc = "Very Dark ";
+    else if (l < 35) lightnessDesc = "Dark ";
+    else if (l > 97) lightnessDesc = "White";
+    else if (l > 90) lightnessDesc = "Near White ";
+    else if (l > 80) lightnessDesc = "Very Light ";
+    else if (l > 65) lightnessDesc = "Light ";
+
+    // Pure black / pure white — no hue info needed
+    if (lightnessDesc === "Black") return "Black";
+    if (lightnessDesc === "White") return "White";
+
+    // ── Achromatic (grey) handling ──
+    // Even greys can have warm/cool tint when saturation is very low but not zero
+    if (s < 5) {
+        return (lightnessDesc + "Grey").trim();
+    }
+    if (s < 12) {
+        // Slight tint — describe the tint direction
+        const tintHue = getHueName(h);
+        return (lightnessDesc + tintHue + "ish Grey").trim();
+    }
+
+    // ── Temperature (Warm / Cool) ──
+    const isWarm = (h < 80 || h >= 320);
+    const tempDesc = isWarm ? "Warm " : "Cool ";
+
+    // ── Saturation descriptor ──
+    let satDesc = "";
+    if (s < 20) satDesc = "Greyish ";
+    else if (s < 40) satDesc = "Muted ";
+    else if (s < 60) satDesc = "";  // normal — no descriptor needed
+    else if (s < 80) satDesc = "Rich ";
+    else satDesc = "Vivid ";
+
+    // ── 16 hue segments ──
+    const hueDesc = getHueName(h);
+
+    return (lightnessDesc + satDesc + tempDesc + hueDesc).trim();
+}
+
+function getHueName(h) {
+    if (h < 10 || h >= 350) return "Red";
+    if (h < 25) return "Vermilion";
+    if (h < 40) return "Orange";
+    if (h < 52) return "Amber";
+    if (h < 68) return "Yellow";
+    if (h < 82) return "Chartreuse";
+    if (h < 150) return "Green";
+    if (h < 170) return "Teal";
+    if (h < 190) return "Cyan";
+    if (h < 215) return "Sky Blue";
+    if (h < 250) return "Blue";
+    if (h < 270) return "Indigo";
+    if (h < 290) return "Purple";
+    if (h < 320) return "Magenta";
+    return "Rose";
+}
 
 function getNearestColorName(r, g, b, justName = false) {
+    // Use the xkcd 948-color crowd-sourced database
+    const colorDB = (typeof XKCD_COLORS !== 'undefined') ? XKCD_COLORS : [];
     let minDistance = Infinity;
-    let closestName = "Unknown";
-    let closestCat = "Unknown";
+    let closestName = "unknown";
 
-    for (const color of colorMapping) {
-        // Human-perceptually weighted RGB distance
+    for (const color of colorDB) {
         const rmean = (r + color.rgb[0]) / 2;
         const rDif = r - color.rgb[0];
         const gDif = g - color.rgb[1];
@@ -329,21 +352,34 @@ function getNearestColorName(r, g, b, justName = false) {
         const weightR = 2 + rmean / 256;
         const weightG = 4.0;
         const weightB = 2 + (255 - rmean) / 256;
-
         const distance = Math.sqrt(weightR * rDif * rDif + weightG * gDif * gDif + weightB * bDif * bDif);
 
         if (distance < minDistance) {
             minDistance = distance;
             closestName = color.name;
-            closestCat = color.cat;
         }
     }
 
-    // Format e.g. "Dark Slate Gray"
-    const formattedName = closestName.replace(/([A-Z])/g, ' $1').trim();
+    // Capitalize xkcd name (e.g. "dusty blue" -> "Dusty Blue")
+    const formattedName = closestName.replace(/\b\w/g, c => c.toUpperCase());
+
+    const { h, s, l } = rgbToHsl(r, g, b);
+    const descriptiveName = getDescriptiveColorName(h, s, l);
+
+    // Match accuracy: max perceptual distance ≈ 764 for black↔white
+    const maxDistance = 764;
+    const matchPercent = Math.round(Math.max(0, 100 - (minDistance / maxDistance * 100)));
 
     if (justName) return formattedName;
-    return `${formattedName} (${closestCat})`;
+
+    // Avoid redundancy: if descriptive name is too similar to xkcd name, skip it
+    const xkcdLower = formattedName.toLowerCase();
+    const descLower = descriptiveName.toLowerCase();
+    if (xkcdLower === descLower || descLower.length <= 5) {
+        return `${formattedName} (${matchPercent}%)`;
+    }
+
+    return `${formattedName} (${matchPercent}%) · ${descriptiveName}`;
 }
 
 // ── WCAG Math ─────────────────────────────────────────
@@ -544,14 +580,10 @@ if (window.electronAPI) {
                         await navigator.clipboard.writeText(hex);
                     }
 
-                    if (!savedColors.includes(hex)) {
-                        savedColors.unshift(hex);
-                        saveColors();
-                        renderGallery();
-                        showToast(`Picked & Copied ${hex}`);
-                    } else {
-                        showToast(`Copied ${hex}`);
-                    }
+                    savedColors.unshift(hex);
+                    saveColors();
+                    renderGallery();
+                    showToast(`Picked & Copied ${hex}`);
                 }
             } catch (err) {
                 console.log('Picker shortcut error:', err);
@@ -573,11 +605,9 @@ if (window.electronAPI) {
                         await navigator.clipboard.writeText(hex);
                     }
 
-                    if (!savedColors.includes(hex)) {
-                        savedColors.unshift(hex);
-                        saveColors();
-                        renderGallery();
-                    }
+                    savedColors.unshift(hex);
+                    saveColors();
+                    renderGallery();
                     showToast(`Copied ${hex}`);
                 }
             } catch (err) {
@@ -591,37 +621,118 @@ if (window.electronAPI) {
     }
 }
 
-// ── EyeDropper ───────────────────────────────────────
-pickBtn.addEventListener('click', async () => {
+// ── Live Color Preview Mode ──────────────────────────
+let previewInterval = null;
+let isPreviewMode = false;
+
+function startPreviewMode() {
+    if (isPreviewMode) return;
+
+    const hasLivePreview = window.electronAPI && window.electronAPI.getPixelAtCursor;
+    const hasEyeDropper = window.EyeDropper;
+
+    if (!hasLivePreview && !hasEyeDropper) {
+        fallbackPick();
+        return;
+    }
+
+    // Start live preview polling (updates Iris UI in real-time)
+    if (hasLivePreview) {
+        isPreviewMode = true;
+        pickBtn.classList.add('preview-active');
+
+        previewInterval = setInterval(async () => {
+            if (!isPreviewMode) return;
+            try {
+                const hex = await window.electronAPI.getPixelAtCursor();
+                if (hex && isPreviewMode) {
+                    setCurrentColor(hex, true);
+                }
+            } catch (e) { }
+        }, 50);
+    }
+
+    // Open EyeDropper (provides the magnifying loupe) simultaneously
+    if (hasEyeDropper) {
+        const dropper = new EyeDropper();
+        dropper.open().then(result => {
+            // EyeDropper resolved — user clicked to pick
+            stopPreviewMode(false); // stop polling
+            const hex = result.sRGBHex;
+            setCurrentColor(hex);
+            confirmPick(hex);
+        }).catch(err => {
+            // User cancelled (Escape) or error
+            stopPreviewMode(false);
+            console.log('EyeDropper cancelled:', err.message);
+        });
+    } else {
+        // No EyeDropper available — use blur/keyboard to confirm
+        document.addEventListener('keydown', previewKeyHandler);
+        window.addEventListener('blur', previewConfirmHandler);
+    }
+}
+
+function previewKeyHandler(e) {
+    if (e.key === 'Escape') {
+        stopPreviewMode(false);
+    }
+}
+
+function previewConfirmHandler() {
+    if (isPreviewMode) {
+        stopPreviewMode(true);
+    }
+}
+
+function stopPreviewMode(confirm) {
+    if (!isPreviewMode && !pickBtn.classList.contains('preview-active')) return;
+    isPreviewMode = false;
+    clearInterval(previewInterval);
+    previewInterval = null;
+
+    pickBtn.classList.remove('preview-active');
+
+    document.removeEventListener('keydown', previewKeyHandler);
+    window.removeEventListener('blur', previewConfirmHandler);
+
+    if (confirm && currentColor) {
+        confirmPick(currentColor);
+    }
+}
+
+function confirmPick(hex) {
+    const copyPromise = (window.electronAPI && window.electronAPI.writeTextToClipboard)
+        ? window.electronAPI.writeTextToClipboard(hex)
+        : navigator.clipboard.writeText(hex);
+
+    copyPromise.then(() => {
+        savedColors.unshift(hex);
+        saveColors();
+        renderGallery();
+        showToast(`Picked & Copied ${hex}`);
+    }).catch(err => {
+        console.error("Failed to copy:", err);
+        showToast("Failed to copy");
+    });
+}
+
+async function fallbackPick() {
     try {
         const hex = await window.electronAPI.pickColor();
-
-        if (!hex) return; // user cancelled
-
+        if (!hex) return;
         setCurrentColor(hex);
-
-        // Auto-Copy to clipboard
-        const copyPromise = (window.electronAPI && window.electronAPI.writeTextToClipboard)
-            ? window.electronAPI.writeTextToClipboard(hex)
-            : navigator.clipboard.writeText(hex);
-
-        copyPromise.then(() => {
-            // Auto-add to gallery if not duplicate
-            if (!savedColors.includes(hex)) {
-                savedColors.unshift(hex);
-                saveColors();
-                renderGallery();
-                showToast(`Picked & Copied ${hex}`);
-            } else {
-                showToast(`Copied ${hex}`);
-            }
-        }).catch(err => {
-            console.error("Failed to copy:", err);
-            showToast("Failed to copy");
-        });
+        confirmPick(hex);
     } catch (err) {
-        // user may cancel EyeDropper, which throws an abort error. Ignore.
         console.log('Picker cancelled or error:', err);
+    }
+}
+
+pickBtn.addEventListener('click', () => {
+    if (isPreviewMode) {
+        stopPreviewMode(false);
+    } else {
+        startPreviewMode();
     }
 });
 

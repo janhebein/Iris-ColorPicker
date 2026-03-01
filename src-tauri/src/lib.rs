@@ -10,6 +10,13 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::str::FromStr;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState, Shortcut};
 
+#[cfg(windows)]
+use windows::Win32::Graphics::Gdi::{GetDC, GetPixel, ReleaseDC};
+#[cfg(windows)]
+use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+#[cfg(windows)]
+use windows::Win32::Foundation::POINT;
+
 static QUITTING: AtomicBool = AtomicBool::new(false);
 
 #[tauri::command]
@@ -29,6 +36,54 @@ async fn pick_color() -> Option<String> {
             let relative_y = y - screen.display_info.y;
             
             if let Ok(image) = screen.capture_area(relative_x, relative_y, 1, 1) {
+                let rgba = image.get_pixel(0, 0);
+                return Some(format!("#{:02X}{:02X}{:02X}", rgba[0], rgba[1], rgba[2]));
+            }
+        }
+    }
+    None
+}
+
+#[cfg(windows)]
+#[tauri::command]
+fn get_pixel_at_cursor() -> Option<String> {
+    unsafe {
+        let mut pt = POINT::default();
+        if GetCursorPos(&mut pt).is_ok() {
+            let hdc = GetDC(None);
+            if !hdc.is_invalid() {
+                let color = GetPixel(hdc, pt.x, pt.y);
+                let _ = ReleaseDC(None, hdc);
+                // COLORREF is 0x00BBGGRR
+                if color.0 != 0xFFFFFFFF {
+                    let r = (color.0 & 0xFF) as u8;
+                    let g = ((color.0 >> 8) & 0xFF) as u8;
+                    let b = ((color.0 >> 16) & 0xFF) as u8;
+                    return Some(format!("#{:02X}{:02X}{:02X}", r, g, b));
+                }
+            }
+        }
+    }
+    None
+}
+
+#[cfg(not(windows))]
+#[tauri::command]
+fn get_pixel_at_cursor() -> Option<String> {
+    // Fallback: use screenshots crate on non-Windows
+    let device_state = DeviceState::new();
+    let mouse = device_state.get_mouse();
+    let (x, y) = mouse.coords;
+    let screens = Screen::all().unwrap_or_default();
+    for screen in screens {
+        if x >= screen.display_info.x
+            && x < screen.display_info.x + screen.display_info.width as i32
+            && y >= screen.display_info.y
+            && y < screen.display_info.y + screen.display_info.height as i32
+        {
+            let rx = x - screen.display_info.x;
+            let ry = y - screen.display_info.y;
+            if let Ok(image) = screen.capture_area(rx, ry, 1, 1) {
                 let rgba = image.get_pixel(0, 0);
                 return Some(format!("#{:02X}{:02X}{:02X}", rgba[0], rgba[1], rgba[2]));
             }
@@ -133,7 +188,7 @@ pub fn run() {
                 }
             }
         }).build())
-        .invoke_handler(tauri::generate_handler![pick_color, update_shortcut])
+        .invoke_handler(tauri::generate_handler![pick_color, update_shortcut, get_pixel_at_cursor])
         .setup(|app| {
             let show_i = MenuItem::with_id(app, "show", "Show Iris", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;

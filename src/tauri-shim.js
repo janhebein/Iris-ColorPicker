@@ -95,6 +95,8 @@ if (window.__TAURI__) {
 
         openExternal: (url) => invoke('plugin:shell|open', { path: url }),
 
-        writeTextToClipboard: (text) => invoke('plugin:clipboard-manager|write_text', { text })
+        writeTextToClipboard: (text) => invoke('plugin:clipboard-manager|write_text', { text }),
+
+        getPixelAtCursor: () => invoke('get_pixel_at_cursor')
     };
 }
