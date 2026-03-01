@@ -196,6 +196,12 @@ if (window.electronAPI && window.electronAPI.getStartupStatus) {
         startupToggle.checked = status;
     });
 
+    // Disable toggle in dev mode
+    if (window.electronAPI._isDevMode && window.electronAPI._isDevMode()) {
+        startupToggle.disabled = true;
+        startupToggle.closest('.setting-item').title = 'Autostart disabled in dev mode';
+    }
+
     startupToggle.addEventListener('change', (e) => {
         window.electronAPI.toggleStartup(e.target.checked);
         showToast(e.target.checked ? "Enabled Auto-Start" : "Disabled Auto-Start");

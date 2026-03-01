@@ -76,10 +76,22 @@ if (window.__TAURI__) {
             });
         },
 
-        getStartupStatus: () => invoke('plugin:autostart|is_enabled'),
-        toggleStartup: (enable) => enable
-            ? invoke('plugin:autostart|enable')
-            : invoke('plugin:autostart|disable'),
+        // Block autostart in dev mode to prevent registering the debug exe
+        _isDevMode: () => window.location.protocol === 'http:',
+
+        getStartupStatus: () => {
+            if (window.electronAPI._isDevMode()) return Promise.resolve(false);
+            return invoke('plugin:autostart|is_enabled');
+        },
+        toggleStartup: (enable) => {
+            if (window.electronAPI._isDevMode()) {
+                console.warn('Autostart disabled in dev mode to prevent registering debug exe.');
+                return Promise.resolve();
+            }
+            return enable
+                ? invoke('plugin:autostart|enable')
+                : invoke('plugin:autostart|disable');
+        },
 
         openExternal: (url) => invoke('plugin:shell|open', { path: url })
     };
