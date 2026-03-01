@@ -7,21 +7,13 @@
 
 ## Quick Overview
 
-<p align="center">
-  <img src="assets/image.png" alt="Iris Dark Mode" width="45%" />
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="assets/image copy.png" alt="Iris Light Mode" width="45%" />
-</p>
-
-<p align="center">
-  <img src="assets/image copy 2.png" alt="Harmonic Palettes" width="30%" />
-  &nbsp;&nbsp;
-  <img src="assets/image copy 3.png" alt="UI Tint & Tone Scale" width="30%" />
-  &nbsp;&nbsp;
-  <img src="assets/image copy 4.png" alt="Color Blindness Simulator" width="30%" />
-</p>
-
 Iris lets you capture, inspect, and organize colors directly from your screen with global hotkeys and an intuitive UI. This tool is designed to be fast, stay out of your way until you need it, and give you immediate access to all color formats and harmonic palettes.
+
+## Showcase
+
+<div align="center">
+  <video src="assets/iris_showcase.mp4" controls="controls" muted="muted" width="80%"></video>
+</div>
 
 ## Features
 
