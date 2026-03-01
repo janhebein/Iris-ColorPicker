@@ -93,6 +93,8 @@ if (window.__TAURI__) {
                 : invoke('plugin:autostart|disable');
         },
 
-        openExternal: (url) => invoke('plugin:shell|open', { path: url })
+        openExternal: (url) => invoke('plugin:shell|open', { path: url }),
+
+        writeTextToClipboard: (text) => invoke('plugin:clipboard-manager|write_text', { text })
     };
 }

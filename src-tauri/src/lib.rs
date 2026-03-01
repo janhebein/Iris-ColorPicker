@@ -167,6 +167,7 @@ pub fn run() {
 
             Ok(())
         })
+        .plugin(tauri_plugin_clipboard_manager::init())
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if QUITTING.load(Ordering::SeqCst) {

@@ -438,11 +438,19 @@ function setCurrentColor(hex, skipVariationsUpdate = false) {
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('clickable-value')) {
         const textToCopy = e.target.textContent.replace('%', '');
-        navigator.clipboard.writeText(textToCopy).then(() => {
+
+        const copyPromise = (window.electronAPI && window.electronAPI.writeTextToClipboard)
+            ? window.electronAPI.writeTextToClipboard(textToCopy)
+            : navigator.clipboard.writeText(textToCopy);
+
+        copyPromise.then(() => {
             showToast(`Copied ${textToCopy}`);
             const origColor = e.target.style.color;
             e.target.style.color = 'var(--accent)';
             setTimeout(() => { e.target.style.color = origColor; }, 1200);
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+            showToast("Failed to copy");
         });
     }
 });
@@ -529,7 +537,13 @@ if (window.electronAPI) {
                 const hex = await window.electronAPI.pickColor();
                 if (hex) {
                     setCurrentColor(hex);
-                    navigator.clipboard.writeText(hex);
+
+                    if (window.electronAPI && window.electronAPI.writeTextToClipboard) {
+                        await window.electronAPI.writeTextToClipboard(hex);
+                    } else {
+                        await navigator.clipboard.writeText(hex);
+                    }
+
                     if (!savedColors.includes(hex)) {
                         savedColors.unshift(hex);
                         saveColors();
@@ -552,7 +566,13 @@ if (window.electronAPI) {
                 const hex = await window.electronAPI.pickColor();
                 if (hex) {
                     setCurrentColor(hex);
-                    await navigator.clipboard.writeText(hex);
+
+                    if (window.electronAPI && window.electronAPI.writeTextToClipboard) {
+                        await window.electronAPI.writeTextToClipboard(hex);
+                    } else {
+                        await navigator.clipboard.writeText(hex);
+                    }
+
                     if (!savedColors.includes(hex)) {
                         savedColors.unshift(hex);
                         saveColors();
@@ -581,7 +601,11 @@ pickBtn.addEventListener('click', async () => {
         setCurrentColor(hex);
 
         // Auto-Copy to clipboard
-        navigator.clipboard.writeText(hex).then(() => {
+        const copyPromise = (window.electronAPI && window.electronAPI.writeTextToClipboard)
+            ? window.electronAPI.writeTextToClipboard(hex)
+            : navigator.clipboard.writeText(hex);
+
+        copyPromise.then(() => {
             // Auto-add to gallery if not duplicate
             if (!savedColors.includes(hex)) {
                 savedColors.unshift(hex);
@@ -591,6 +615,9 @@ pickBtn.addEventListener('click', async () => {
             } else {
                 showToast(`Copied ${hex}`);
             }
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+            showToast("Failed to copy");
         });
     } catch (err) {
         // user may cancel EyeDropper, which throws an abort error. Ignore.
@@ -617,10 +644,17 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
 
         if (!text || text.includes('—')) return;
 
-        navigator.clipboard.writeText(text).then(() => {
+        const copyPromise = (window.electronAPI && window.electronAPI.writeTextToClipboard)
+            ? window.electronAPI.writeTextToClipboard(text)
+            : navigator.clipboard.writeText(text);
+
+        copyPromise.then(() => {
             btn.classList.add('copied');
             showToast(`Copied ${text}`);
             setTimeout(() => btn.classList.remove('copied'), 1200);
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+            showToast("Failed to copy");
         });
     });
 });

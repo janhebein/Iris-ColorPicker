@@ -5,3 +5,5 @@ dist/
 .env
 .vscode/
 src-tauri/target/
+
+src-tauri/errors.json
