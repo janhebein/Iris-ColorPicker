@@ -12,7 +12,7 @@ Iris lets you capture, inspect, and organize colors directly from your screen wi
 ## Showcase
 
 <p align="center" width="100%">
-  <video src="https://github.com/user-attachments/assets/563d36e5-1c92-49e6-aa88-c873a20ddf1d" width="80%" controls></video>
+  [![Watch the showcase video](https://img.youtube.com/vi/2DtK9Mj-xf4/maxresdefault.jpg)](https://www.youtube.com/watch?v=2DtK9Mj-xf4)
 </p>
 
 ## Features
