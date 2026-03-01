@@ -11,7 +11,9 @@ Iris lets you capture, inspect, and organize colors directly from your screen wi
 
 ## Showcase
 
-<video src="https://github.com/janhebein/ColorPicker/raw/main/assets/iris_showcase.mp4" controls="controls" muted="muted" style="max-height:640px;"></video>
+<p align="center" width="100%">
+  <video src="https://github.com/user-attachments/assets/563d36e5-1c92-49e6-aa88-c873a20ddf1d" width="80%" controls></video>
+</p>
 
 ## Features
 
