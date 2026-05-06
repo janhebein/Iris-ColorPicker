@@ -537,7 +537,10 @@ if (confirmAction) {
     });
 }
 
-function getDescriptiveColorName(h, s, l) {
+function getDescriptiveColorNameFromOklch(oklch) {
+    const h = oklch.h;
+    const c = oklch.c;
+    const l = oklch.l * 100;
     let lightnessDesc = "";
     if (l <= 3) lightnessDesc = "Black";
     else if (l < 10) lightnessDesc = "Near Black ";
@@ -549,20 +552,20 @@ function getDescriptiveColorName(h, s, l) {
     else if (l > 65) lightnessDesc = "Light ";
     if (lightnessDesc === "Black") return "Black";
     if (lightnessDesc === "White") return "White";
-    if (s < 5) {
+    if (c < 0.025) {
         return (lightnessDesc + "Grey").trim();
     }
-    if (s < 12) {
+    if (c < 0.05) {
         const tintHue = getHueName(h);
         return (lightnessDesc + tintHue + "ish Grey").trim();
     }
     const isWarm = (h < 80 || h >= 320);
     const tempDesc = isWarm ? "Warm " : "Cool ";
     let satDesc = "";
-    if (s < 20) satDesc = "Greyish ";
-    else if (s < 40) satDesc = "Muted ";
-    else if (s < 60) satDesc = "";  // normal — no descriptor needed
-    else if (s < 80) satDesc = "Rich ";
+    if (c < 0.08) satDesc = "Greyish ";
+    else if (c < 0.13) satDesc = "Muted ";
+    else if (c < 0.19) satDesc = "";
+    else if (c < 0.27) satDesc = "Rich ";
     else satDesc = "Vivid ";
     const hueDesc = getHueName(h);
 
@@ -589,18 +592,13 @@ function getHueName(h) {
 
 function getNearestColorName(r, g, b, justName = false) {
     const colorDB = (typeof XKCD_COLORS !== 'undefined') ? XKCD_COLORS : [];
+    const pickedOklab = rgbToOklab(r, g, b);
     let minDistance = Infinity;
     let closestName = "unknown";
 
     for (const color of colorDB) {
-        const rmean = (r + color.rgb[0]) / 2;
-        const rDif = r - color.rgb[0];
-        const gDif = g - color.rgb[1];
-        const bDif = b - color.rgb[2];
-        const weightR = 2 + rmean / 256;
-        const weightG = 4.0;
-        const weightB = 2 + (255 - rmean) / 256;
-        const distance = Math.sqrt(weightR * rDif * rDif + weightG * gDif * gDif + weightB * bDif * bDif);
+        const targetOklab = rgbToOklab(color.rgb[0], color.rgb[1], color.rgb[2]);
+        const distance = getOklabDistance(pickedOklab, targetOklab);
 
         if (distance < minDistance) {
             minDistance = distance;
@@ -609,9 +607,8 @@ function getNearestColorName(r, g, b, justName = false) {
     }
     const formattedName = closestName.replace(/\b\w/g, c => c.toUpperCase());
 
-    const { h, s, l } = rgbToHsl(r, g, b);
-    const descriptiveName = getDescriptiveColorName(h, s, l);
-    const maxDistance = 764;
+    const descriptiveName = getDescriptiveColorNameFromOklch(oklabToOklch(pickedOklab));
+    const maxDistance = 0.45;
     const matchPercent = Math.round(Math.max(0, 100 - (minDistance / maxDistance * 100)));
 
     if (justName) return formattedName;
@@ -621,7 +618,41 @@ function getNearestColorName(r, g, b, justName = false) {
         return `${formattedName} (${matchPercent}%)`;
     }
 
-    return `${formattedName} (${matchPercent}%) · ${descriptiveName}`;
+    return `${formattedName} (${matchPercent}%) - ${descriptiveName}`;
+}
+
+function rgbToOklab(r, g, b) {
+    const lr = srgbToLinearChannel(r);
+    const lg = srgbToLinearChannel(g);
+    const lb = srgbToLinearChannel(b);
+
+    const l = 0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb;
+    const m = 0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb;
+    const s = 0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb;
+
+    const lRoot = Math.cbrt(l);
+    const mRoot = Math.cbrt(m);
+    const sRoot = Math.cbrt(s);
+
+    return {
+        l: 0.2104542553 * lRoot + 0.7936177850 * mRoot - 0.0040720468 * sRoot,
+        a: 1.9779984951 * lRoot - 2.4285922050 * mRoot + 0.4505937099 * sRoot,
+        b: 0.0259040371 * lRoot + 0.7827717662 * mRoot - 0.8086757660 * sRoot
+    };
+}
+
+function oklabToOklch(oklab) {
+    const c = Math.sqrt(oklab.a * oklab.a + oklab.b * oklab.b);
+    let h = Math.atan2(oklab.b, oklab.a) * 180 / Math.PI;
+    if (h < 0) h += 360;
+    return { l: oklab.l, c, h };
+}
+
+function getOklabDistance(first, second) {
+    const dL = first.l - second.l;
+    const dA = first.a - second.a;
+    const dB = first.b - second.b;
+    return Math.sqrt(dL * dL + dA * dA + dB * dB);
 }
 function getLuminance(r, g, b) {
     const a = [r, g, b].map(srgbToLinearChannel);

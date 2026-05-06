@@ -19,6 +19,12 @@
 - **Accessibility** -- WCAG contrast checks and color blindness simulation.
 - **Desktop Workflow** -- Global shortcuts, system tray, always-on-top mode, dark/light themes, and optional auto-start.
 
+## Color Naming
+
+Iris uses the xkcd color survey: 949 color names collected from over 200,000 people. The first name is the closest xkcd match; the second name is an Iris description based on perceptual lightness, chroma, hue, and warm/cool tone.
+
+Example: `Sage (98%) - Muted Cool Green`
+
 ## Install
 
 Download the latest `.msi` from [Releases](../../releases).
