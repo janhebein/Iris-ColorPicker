@@ -1,10 +1,37 @@
 if (window.__TAURI__) {
     const invoke = window.__TAURI__.core.invoke;
     const listen = window.__TAURI__.event.listen;
+    const globalShortcut = window.__TAURI__.globalShortcut;
+    const autostart = window.__TAURI__.autostart;
 
     const tWindow = window.__TAURI__.window.getCurrentWindow ?
         window.__TAURI__.window.getCurrentWindow() :
         window.__TAURI__.window.getCurrent();
+
+    const pickerShortcutHandlers = [];
+    const bgShortcutHandlers = [];
+
+    const isPressedShortcut = (event) => event && event.state === 'Pressed';
+    const isDevMode = () => {
+        const host = window.location.hostname;
+        return (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') && window.location.port !== '';
+    };
+
+    async function refreshShortcut(storageKey, keys, handler) {
+        const previous = localStorage.getItem(storageKey) || '';
+
+        if (previous) {
+            await globalShortcut.unregister(previous).catch(() => {});
+        }
+
+        if (!keys) {
+            localStorage.setItem(storageKey, '');
+            return;
+        }
+
+        await globalShortcut.register(keys, handler);
+        localStorage.setItem(storageKey, keys);
+    }
 
     window.electronAPI = {
         minimize: async () => {
@@ -25,40 +52,37 @@ if (window.__TAURI__) {
             return invoke('pick_color');
         },
 
-        _toTauriKeys: (keys) => keys.replace('CommandOrControl', 'CmdOrCtrl'),
+        _toTauriKeys: (keys) => keys,
 
         registerShortcut: (keys) => {
-            const tauriKeys = window.electronAPI._toTauriKeys(keys);
-            return invoke('update_shortcut', {
-                old_keys: window.electronAPI._toTauriKeys(localStorage.getItem('iris-shortcut-backend') || ''),
-                new_keys: tauriKeys,
-                shortcut_type: 'picker'
-            }).then(() => localStorage.setItem('iris-shortcut-backend', keys))
-                .catch(e => {
-                    console.error('registerShortcut error:', e);
-                    throw e;
+            return refreshShortcut('iris-shortcut-backend', keys, async (event) => {
+                if (!isPressedShortcut(event)) return;
+                await tWindow.show();
+                await tWindow.setFocus();
+                pickerShortcutHandlers.forEach(callback => {
+                    callback();
                 });
+            });
         },
 
         registerBgShortcut: (keys) => {
-            const tauriKeys = window.electronAPI._toTauriKeys(keys);
-            return invoke('update_shortcut', {
-                old_keys: window.electronAPI._toTauriKeys(localStorage.getItem('iris-bg-shortcut-backend') || ''),
-                new_keys: tauriKeys,
-                shortcut_type: 'bg_copy'
-            }).then(() => localStorage.setItem('iris-bg-shortcut-backend', keys))
-                .catch(e => {
-                    console.error('registerBgShortcut error:', e);
-                    throw e;
+            return refreshShortcut('iris-bg-shortcut-backend', keys, async (event) => {
+                if (!isPressedShortcut(event)) return;
+                await tWindow.show();
+                bgShortcutHandlers.forEach(callback => {
+                    callback();
                 });
+            });
         },
 
         onTriggerPicker: (callback) => {
+            pickerShortcutHandlers.push(callback);
             listen('trigger-ui-picker', () => {
                 callback();
             });
         },
         onTriggerBgPicker: (callback) => {
+            bgShortcutHandlers.push(callback);
             listen('trigger-bg-picker', () => {
                 callback();
             });
@@ -69,15 +93,19 @@ if (window.__TAURI__) {
             });
         },
 
-        _isDevMode: () => window.location.protocol === 'http:',
+        _isDevMode: isDevMode,
 
         getStartupStatus: () => {
             if (window.electronAPI._isDevMode()) return Promise.resolve(false);
+            if (autostart && autostart.isEnabled) return autostart.isEnabled();
             return invoke('plugin:autostart|is_enabled');
         },
         toggleStartup: (enable) => {
             if (window.electronAPI._isDevMode()) {
                 return Promise.resolve();
+            }
+            if (autostart && autostart.enable && autostart.disable) {
+                return enable ? autostart.enable() : autostart.disable();
             }
             return enable
                 ? invoke('plugin:autostart|enable')

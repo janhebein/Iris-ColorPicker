@@ -289,6 +289,12 @@ pub fn run() {
                 })
                 .build(app)?;
 
+            if std::env::args().any(|arg| arg == "--minimized") {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.hide();
+                }
+            }
+
             Ok(())
         })
         .plugin(tauri_plugin_clipboard_manager::init())
