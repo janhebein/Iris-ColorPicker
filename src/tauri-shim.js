@@ -1,23 +1,16 @@
-// tauri-shim.js
-// This shim provides the same electronAPI expected by renderer.js, but mapped to Tauri globals
-
 if (window.__TAURI__) {
-    console.log("Tauri API detected");
     const invoke = window.__TAURI__.core.invoke;
     const listen = window.__TAURI__.event.listen;
 
-    // In Tauri 2.0, getCurrentWindow is often the method
     const tWindow = window.__TAURI__.window.getCurrentWindow ?
         window.__TAURI__.window.getCurrentWindow() :
         window.__TAURI__.window.getCurrent();
 
     window.electronAPI = {
         minimize: async () => {
-            console.log("Minimize called");
             return tWindow.minimize();
         },
         close: async () => {
-            console.log("Close/hide called");
             return tWindow.hide();
         },
         setAlwaysOnTop: async (flag) => tWindow.setAlwaysOnTop(flag),
@@ -27,37 +20,37 @@ if (window.__TAURI__) {
                     const dropper = new EyeDropper();
                     const result = await dropper.open();
                     return result.sRGBHex;
-                } catch (e) {
-                    console.log('EyeDropper unavailable, falling back to Rust picker:', e.message);
-                    // Fall through to Rust native picker
-                }
+                } catch (_) {}
             }
             return invoke('pick_color');
         },
 
-        // Tauri 2.0 expects "CmdOrCtrl" not "CommandOrControl"
         _toTauriKeys: (keys) => keys.replace('CommandOrControl', 'CmdOrCtrl'),
 
         registerShortcut: (keys) => {
             const tauriKeys = window.electronAPI._toTauriKeys(keys);
-            console.log('registerShortcut:', keys, '->', tauriKeys);
             return invoke('update_shortcut', {
                 old_keys: window.electronAPI._toTauriKeys(localStorage.getItem('iris-shortcut-backend') || ''),
                 new_keys: tauriKeys,
                 shortcut_type: 'picker'
             }).then(() => localStorage.setItem('iris-shortcut-backend', keys))
-                .catch(e => console.error('registerShortcut error:', e));
+                .catch(e => {
+                    console.error('registerShortcut error:', e);
+                    throw e;
+                });
         },
 
         registerBgShortcut: (keys) => {
             const tauriKeys = window.electronAPI._toTauriKeys(keys);
-            console.log('registerBgShortcut:', keys, '->', tauriKeys);
             return invoke('update_shortcut', {
                 old_keys: window.electronAPI._toTauriKeys(localStorage.getItem('iris-bg-shortcut-backend') || ''),
                 new_keys: tauriKeys,
                 shortcut_type: 'bg_copy'
             }).then(() => localStorage.setItem('iris-bg-shortcut-backend', keys))
-                .catch(e => console.error('registerBgShortcut error:', e));
+                .catch(e => {
+                    console.error('registerBgShortcut error:', e);
+                    throw e;
+                });
         },
 
         onTriggerPicker: (callback) => {
@@ -76,7 +69,6 @@ if (window.__TAURI__) {
             });
         },
 
-        // Block autostart in dev mode to prevent registering the debug exe
         _isDevMode: () => window.location.protocol === 'http:',
 
         getStartupStatus: () => {
@@ -85,7 +77,6 @@ if (window.__TAURI__) {
         },
         toggleStartup: (enable) => {
             if (window.electronAPI._isDevMode()) {
-                console.warn('Autostart disabled in dev mode to prevent registering debug exe.');
                 return Promise.resolve();
             }
             return enable
@@ -97,6 +88,10 @@ if (window.__TAURI__) {
 
         writeTextToClipboard: (text) => invoke('plugin:clipboard-manager|write_text', { text }),
 
-        getPixelAtCursor: () => invoke('get_pixel_at_cursor')
+        getPixelAtCursor: () => invoke('get_pixel_at_cursor'),
+
+        readLibraryFile: () => invoke('read_library_file'),
+        writeLibraryFile: (contents) => invoke('write_library_file', { contents }),
+        getLibraryFilePath: () => invoke('get_library_file_path')
     };
 }

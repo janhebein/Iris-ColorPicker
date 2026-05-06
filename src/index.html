@@ -13,7 +13,6 @@
 
 <body>
   <div id="root-container">
-    <!-- Custom title bar (frameless window) -->
     <div class="titlebar" id="titlebar">
       <div class="titlebar-title-group">
         <img src="assets/logo.png" alt="Iris" class="titlebar-logo">
@@ -28,30 +27,55 @@
             </path>
           </svg>
         </button>
+        <span class="titlebar-separator" aria-hidden="true"></span>
+        <button class="titlebar-btn library" id="library-btn" title="Library">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M3 6.5A2.5 2.5 0 0 1 5.5 4H9l2 2h7.5A2.5 2.5 0 0 1 21 8.5v7A2.5 2.5 0 0 1 18.5 18h-13A2.5 2.5 0 0 1 3 15.5z">
+            </path>
+          </svg>
+        </button>
+        <button class="titlebar-btn harmonics" id="harmonics-btn" title="Harmonic Palettes">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8"></circle>
+            <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"></circle>
+            <path d="M12 4v16"></path>
+            <path d="M4 12h16"></path>
+            <path d="M6.4 6.4l11.2 11.2"></path>
+            <path d="M17.6 6.4L6.4 17.6"></path>
+          </svg>
+        </button>
         <button class="titlebar-btn accessibility" id="accessibility-btn" title="Color Blindness Simulator">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
         </button>
-        <button class="titlebar-btn harmonics" id="harmonics-btn" title="Harmonic Palettes">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-            </path>
-          </svg>
-        </button>
+        <span class="titlebar-separator" aria-hidden="true"></span>
         <button class="titlebar-btn pin active" id="pin-btn" title="Toggle Always on Top">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 17v5M9 10.5V5a3 3 0 0 1 6 0v5.5l2 4.5H7l2-4.5z"></path>
           </svg>
         </button>
-        <button class="titlebar-btn minimize" id="btn-minimize" title="Minimize">─</button>
-        <button class="titlebar-btn close" id="btn-close" title="Close">✕</button>
+        <button class="titlebar-btn minimize" id="btn-minimize" title="Minimize">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M5 12h14"></path>
+          </svg>
+        </button>
+        <button class="titlebar-btn close" id="btn-close" title="Close">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M6 6l12 12"></path>
+            <path d="M18 6L6 18"></path>
+          </svg>
+        </button>
       </div>
     </div>
 
     <main class="container">
-      <!-- Current color section -->
       <section class="current-color-section">
         <div class="color-preview" id="color-preview">
           <div class="color-preview-inner" id="color-preview-inner"></div>
@@ -120,11 +144,11 @@
           </div>
         </div>
 
+        <button class="save-color-inline-btn" id="save-library-btn" title="Save current color">Save Color</button>
+
         <div class="scale-stripe" id="scale-stripe" title="Open UI Tone Scale">
-          <!-- Injected by JS -->
         </div>
 
-        <!-- WCAG Contrast Preview -->
         <div class="wcag-preview">
           <div class="wcag-box bg-white" id="wcag-white">
             <span class="wcag-text">Aa</span>
@@ -137,7 +161,28 @@
         </div>
       </section>
 
-      <!-- Gallery section -->
+      <section class="library-section" id="library-section" style="display: none;">
+        <div class="harmonics-header">
+          <h2>Library</h2>
+          <button class="back-btn" id="btn-library-back" title="Back to picker">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+        </div>
+        <div class="library-toolbar">
+          <button class="library-mini-btn" id="library-folder-btn" title="Create folder">New Folder</button>
+          <button class="library-mini-btn" id="library-import-btn" title="Import library backup">Import</button>
+          <button class="library-mini-btn" id="library-full-export-btn" title="Export full library backup">Export</button>
+        </div>
+        <div class="library-tree" id="library-list">
+          <div class="gallery-empty" id="library-empty">
+            <p>No saved colors yet.<br />Save a picked color to build a library.</p>
+          </div>
+        </div>
+      </section>
+
       <section class="gallery-section">
         <div class="gallery-header">
           <h2>History</h2>
@@ -153,7 +198,6 @@
         </div>
       </section>
 
-      <!-- Harmonics Section (Hidden by default) -->
       <section class="harmonics-section" id="harmonics-section" style="display: none;">
         <div class="harmonics-header">
           <h2>Harmonic Palettes</h2>
@@ -211,7 +255,6 @@
         </div>
       </section>
 
-      <!-- UI Scale Section (Hidden by default) -->
       <section class="scale-section" id="scale-section" style="display: none;">
         <div class="harmonics-header">
           <h2>UI Tint & Tone Scale</h2>
@@ -230,11 +273,9 @@
           </div>
         </div>
         <div class="scale-content" id="scale-content">
-          <!-- 10 steps generated here -->
         </div>
       </section>
 
-      <!-- Accessibility Section (Hidden by default) -->
       <section class="accessibility-section" id="accessibility-section" style="display: none;">
         <div class="harmonics-header">
           <h2>Color Blindness Simulator</h2>
@@ -274,7 +315,6 @@
 
           <div class="access-section-title">Vision Simulator</div>
           <div id="vision-simulator-grid">
-            <!-- Rendered by JS -->
           </div>
         </div>
       </section>
@@ -283,7 +323,94 @@
 
   <div class="toast" id="toast">Copied!</div>
 
-  <!-- Settings Modal -->
+  <div class="modal-overlay" id="save-color-modal">
+    <div class="modal-content compact-modal">
+      <div class="modal-header">
+        <h2>Save Color</h2>
+        <button class="modal-close" id="save-color-close" title="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="save-color-preview-row">
+          <div class="save-color-dot" id="save-color-dot"></div>
+          <div>
+            <div class="save-color-hex" id="save-color-hex">#------</div>
+            <div class="save-color-auto-name" id="save-color-auto-name">Color</div>
+          </div>
+        </div>
+        <div class="setting-item">
+          <label>Name</label>
+          <input type="text" id="save-color-name-input" placeholder="Color name">
+        </div>
+        <div class="setting-item">
+          <div class="setting-label-row">
+            <label>Folder</label>
+            <button class="inline-text-btn" id="save-color-new-folder" type="button">New</button>
+          </div>
+          <input type="hidden" id="save-color-folder-select" value="__unfiled__">
+          <div class="folder-select" id="save-color-folder-picker">
+            <button class="folder-select-trigger" id="save-color-folder-trigger" type="button"
+              aria-haspopup="listbox" aria-expanded="false">
+              <span id="save-color-folder-label">No folder</span>
+              <svg class="folder-select-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="folder-select-menu" id="save-color-folder-menu" role="listbox"></div>
+          </div>
+        </div>
+        <button class="modal-primary-btn" id="save-color-confirm">Save Color</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="folder-modal">
+    <div class="modal-content compact-modal">
+      <div class="modal-header">
+        <h2 id="folder-modal-title">New Folder</h2>
+        <button class="modal-close" id="folder-close" title="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-item">
+          <label>Name</label>
+          <input type="text" id="folder-name-input" placeholder="Folder name">
+        </div>
+        <button class="modal-primary-btn" id="folder-confirm">Create Folder</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-content compact-modal">
+      <div class="modal-header">
+        <h2 id="confirm-title">Confirm</h2>
+        <button class="modal-close" id="confirm-close" title="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-message" id="confirm-message"></p>
+        <div class="modal-actions">
+          <button class="modal-secondary-btn" id="confirm-cancel">Cancel</button>
+          <button class="modal-danger-btn" id="confirm-action">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="settings-modal">
     <div class="modal-content">
       <div class="modal-header">

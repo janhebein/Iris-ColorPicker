@@ -1,7 +1,13 @@
 {
   "name": "iris",
   "version": "1.0.0",
-  "description": "Iris — A sleek cross-platform color picker with eyedropper and color gallery",
+  "description": "Iris - a polished Windows color picker with eyedropper, color history, and palette tools",
+  "license": "MIT",
+  "author": "janhebein",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/janhebein/ColorPicker.git"
+  },
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build"

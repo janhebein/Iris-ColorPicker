@@ -1,27 +1,25 @@
 <div align="center">
   <h1>Iris</h1>
-  <p>A lightweight, always-on-top color picker for Windows with live preview, intelligent color naming, and real-time accuracy data. Built with Tauri and Rust.</p>
-  <br>
-  <!-- <img src="assets/banner.png" alt="Iris Banner" width="100%" /> -->
+  <p>A lightweight, always-on-top color picker for Windows with live preview, intelligent color naming, a persistent color library, and real-time accuracy data. Built with Tauri and Rust.</p>
 </div>
 
 ## Quick Overview
 
-Iris lets you capture, inspect, and understand colors directly from your screen. It combines a live color preview with an intelligent naming engine backed by 948 crowdsourced color names, giving you instant, accurate descriptions of any color you hover over — complete with match confidence percentages. Designed to be fast, stay out of your way until you need it, and give you immediate access to all color formats and harmonic palettes.
+Iris lets you capture, inspect, organize, and understand colors directly from your screen. It combines a live color preview with a persistent color library and an intelligent naming engine backed by 948 crowdsourced color names, giving you instant, accurate descriptions of any color you hover over -- complete with match confidence percentages. Designed to be fast, stay out of your way until you need it, and give you immediate access to color formats, saved palettes, harmonic palettes, and accessibility data.
 
 ## Showcase
 
 <div align="center">
-  <a href="https://www.youtube.com/watch?v=2DtK9Mj-xf4">
-    <img src="https://img.youtube.com/vi/2DtK9Mj-xf4/maxresdefault.jpg" alt="Watch the showcase video" width="80%" />
-  </a>
+  <img src="images/base_1.png" alt="Iris color picker main view" width="45%" />
+  <img src="images/lib_1.png" alt="Iris color library view" width="45%" />
 </div>
 
 ## Features
 
+- **Color Library** -- Save important colors into a persistent library, organize them into folders, drag colors between folders, and import or export library backups.
 - **Live Color Preview** -- See the color under your cursor update in real-time as you move across the screen. Powered by Win32 `GetPixel` for instant, zero-latency pixel reads.
 - **Intelligent Color Naming** -- Every color is matched against the [xkcd color survey](https://xkcd.com/color/rgb/) database of 948 crowdsourced names (e.g., "Dusty Rose", "Sage", "Steel Blue") with a match accuracy percentage.
-- **Descriptive Labels** -- Each color also gets a generated descriptor based on hue (16 segments), saturation (5 levels), lightness, and warm/cool temperature — e.g., `Sage (98%) · Muted Cool Green`.
+- **Descriptive Labels** -- Each color also gets a generated descriptor based on hue (16 segments), saturation (5 levels), lightness, and warm/cool temperature, e.g. `Sage (98%) - Muted Cool Green`.
 - **Eyedropper with Loupe** -- Native magnifying loupe for pixel-precise picking, combined with live preview.
 - **Color Formats** -- View and copy HEX, RGB, and HSL values with a single click.
 - **Color History** -- Every picked color is saved to history for quick access.
@@ -44,20 +42,20 @@ Download the latest `.msi` installer from the [Releases](../../releases) page an
 
 Requires [Node.js](https://nodejs.org/) and [Rust](https://www.rust-lang.org/tools/install).
 
-```
+```sh
 npm install
 npm run dev
 ```
 
 ## Build
 
-```
+```sh
 npm run build
 ```
 
-Outputs are in `src-tauri/target/release/bundle/`:
-- `msi/Iris_x.x.x_x64_en-US.msi` -- Windows installer
-- `nsis/Iris_x.x.x_x64-setup.exe` -- Standalone installer
+Release installers are written to `src-tauri/target/release/bundle/`:
+- `msi/Iris_x.x.x_x64_en-US.msi` -- Windows MSI installer
+- `nsis/Iris_x.x.x_x64-setup.exe` -- Windows setup executable
 
 ## Tech Stack
 
